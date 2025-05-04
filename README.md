@@ -1,8 +1,8 @@
 # snippetbox
 
-Paste and share text snippets with ease 😊
+Share your text snippets effortlessly! 😊
 
-> This project is built while following the [Let's Go](https://lets-go.alexedwards.net/) book.
+> This is a hands-on project created while working through the excellent [Let's Go](https://lets-go.alexedwards.net/) book by Alex Edwards.
 
-## Prerequisites
+## You'll need:
 - [Go](https://golang.org/)
