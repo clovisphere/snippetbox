@@ -1,0 +1,98 @@
+/* ui/static/css/main.css */
+
+/* Import Ubuntu Mono font */
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap");
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Ubuntu Mono", monospace;
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+header {
+    background-color: white;
+    padding: 2rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    display: inline-block;
+}
+
+header h1 a {
+    text-decoration: none;
+    color: #1c2d41;
+}
+
+nav {
+    background-color: #f0f4f8;
+    border-bottom: 1px solid #dcdcdc;
+    padding: 0.5rem 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav li {
+    display: inline-block;
+    margin: 0 1rem;
+}
+
+nav a {
+    text-decoration: none;
+    color: #1c2d41;
+    font-weight: bold;
+    position: relative;
+}
+
+nav a::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: #dcdcdc;
+    position: absolute;
+    left: 0;
+    bottom: -0.3rem;
+    transform: scaleX(0.5);
+    transform-origin: center;
+}
+
+#root {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #f0f4f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+footer {
+    margin-top: 4rem;
+    padding: 1rem;
+    background-color: #f0f4f8;
+    text-align: center;
+    color: #666;
+    font-size: 0.875rem;
+    border-top: 1px solid #dcdcdc;
+}
+
+footer a {
+    color: #27ae60;
+    text-decoration: none;
+}
