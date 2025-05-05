@@ -32,7 +32,7 @@ Follow these steps to install and run snippetbox:
 
 Or just use the Makefile:
    ```sh
-   make run         # Or just make
+   make run  # or just make
    ```
 
 By default, the application will listen on port `4000`. You can use a different port
