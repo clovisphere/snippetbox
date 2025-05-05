@@ -1,5 +1,7 @@
 .PHONY: build run test
 
+PORT ?= 4000
+
 all: run
 
 build:
@@ -8,7 +10,7 @@ build:
 
 run: build
 	@echo "Running web server... (development mode)"
-	@go run ./cmd/web
+	@go run ./cmd/web -addr=":$(PORT)"
 
 test:
 	@echo "Running tests..."
