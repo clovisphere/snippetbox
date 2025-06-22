@@ -1,4 +1,4 @@
-# 📇 snippetbox
+# 📇 Snippet-Box
 
 Share your text snippets effortlessly! 😊
 
