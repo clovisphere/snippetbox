@@ -1,6 +1,8 @@
-/* ui/static/js/main.js */
-
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Snippetbox loaded with Ubuntu Mono vibes.");
-  // Future enhancement: flash messages, snippet toggles, etc.
-});
+var navLinks = document.querySelectorAll("nav a");
+for (var i = 0; i < navLinks.length; i++) {
+  var link = navLinks[i];
+  if (link.getAttribute("href") == window.location.pathname) {
+    link.classList.add("live");
+    break;
+  }
+}
