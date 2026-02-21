@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -30,19 +31,31 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
 
-// render looks up the template by name, writes the provided status code,
-// and executes the template with the provided data. If the template does
-// not exist or execution fails, it logs a server error.
+// render looks up the template by name, executes it into a buffer, and
+// writes the result to the http.ResponseWriter with the provided status code.
+// If the template does not exist or execution fails, a server error is logged
+// and a 500 Internal Server Error is sent.
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
+	// Look up the requested template in the cache
 	ts, ok := app.templateCache[page]
 	if !ok {
+		// Template not found; log and respond with a server error
 		err := fmt.Errorf("the template %s does not exist", page)
 		app.serverError(w, r, err)
 		return
 	}
 
-	w.WriteHeader(status)
-	if err := ts.ExecuteTemplate(w, "base", data); err != nil {
+	// Execute the template into a temporary buffer first to catch errors
+	buf := new(bytes.Buffer)
+	if err := ts.ExecuteTemplate(buf, "base", data); err != nil {
+		// Template execution failed; log and respond with a server error
 		app.serverError(w, r, err)
+		return
 	}
+
+	// Write the provided HTTP status code
+	w.WriteHeader(status)
+
+	// Write the buffered template content to the response
+	buf.WriteTo(w)
 }
