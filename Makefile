@@ -19,22 +19,15 @@ COVERAGE_OUTPUT ?= cover.out
 PORT ?= 4000
 
 .PHONY: build clean deps fmt vet local \
-	    report test test-race test-integration ci help generate
+	    report test test-race test-integration ci help generate \
+		start stop restart logs
 
-## help: Show this help
+## help: Display this help message with a list of all targets and their usage.
 help:
-	@printf "%b\n" "$(BLUE)Usage: make <target>$(NC)"
-	@awk '/^## / {                                   \
-		line = substr($$0, 4);                       \
-		i = index(line, ":");                        \
-		if (i) {                                     \
-			name = substr(line, 1, i-1);             \
-			desc = substr(line, i+1);                \
-			gsub(/^[ \t]+/, "", desc);               \
-			printf "  \033[36m%-20s\033[0m %s\n",    \
-			       name, desc;                       \
-		}                                            \
-	}' $(MAKEFILE_LIST)
+	@echo "Usage: make <target>"
+	@echo
+	@echo "Available targets:"
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/  /'
 
 ## deps: Manage Go dependencies (tidy + download)
 deps:
@@ -105,6 +98,29 @@ lint:
 ## ci: Run the CI pipeline (lint + tests + report)
 ci: lint test report
 	@echo "→ CI pipeline completed."
+
+## start: Start development services (e.g., MySQL) in detached mode
+start:
+	@echo "→ Starting development services..."
+	@docker compose up -d
+	@echo "→ Services started."
+
+## stop: Stop development services
+stop:
+	@echo "→ Stopping development services..."
+	@docker compose down
+	@echo "→ Services stopped."
+
+## restart: Restart development services
+restart:
+	@echo "→ Restarting development services..."
+	@docker compose down
+	@docker compose up -d
+	@echo "→ Services restarted."
+
+## logs: Tail service logs
+logs:
+	@docker compose logs -f
 
 ## clean: Remove build artifacts and coverage output
 clean:

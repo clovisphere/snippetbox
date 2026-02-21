@@ -1,0 +1,35 @@
+services:
+  # -------------------------------------------------------------------
+  # Database Service: MySQL for application data storage
+  # -------------------------------------------------------------------
+  mysql:
+    image: mysql:8.0.45-bookworm
+    container_name: mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: r00t
+      MYSQL_DATABASE: snippet
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: demo
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  mysql_data:
+    driver: local
