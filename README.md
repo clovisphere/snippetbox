@@ -44,7 +44,7 @@ make migration-up
 go run main.go
 ```
 
-Or just use the Makefile
+Or just use the [Makefile](./Makefile)
 
 ```sh
 make help  # Lists all available commands and usage
@@ -79,7 +79,7 @@ make migration-status
 make migration-force
 ```
 
-> For development, you can run MySQL with Docker using:
+For development, you can run MySQL with Docker using:
 
 ```sh
 make start   # Starts services
@@ -88,7 +88,7 @@ make restart # Restarts services
 make logs    # Tail logs
 ```
 
-#### 💡 Tips
+### 💡 Tips
 
 - Use `make clean` to remove build artifacts and coverage reports.
 - Keep your migration files in `./migrations` for compatibility with the Makefile targets.
