@@ -8,7 +8,7 @@ Share your text snippets effortlessly! 😊
 
 Before running `Snippet-Box`, make sure you have the following installed:
 
-- **Go** (version 1.24 or higher) - [installation guide](https://go.dev/dl/)
+- **Go** (version 1.25 or higher) - [installation guide](https://go.dev/dl/)
 - **MySQL** (version 8.0.45 or higher) - [releases](https://dev.mysql.com/downloads/mysql/)
 
 Optionally, having [Docker](https://www.docker.com/) installed is useful for running development services like MySQL.
