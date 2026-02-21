@@ -2,40 +2,41 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/clovisphere/snippetbox/internal/models"
 )
 
+// index fetches the latest snippets from storage and renders the home page.
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
-	files := []string{
-		"./ui/html/pages/base.html",
-		"./ui/html/pages/partials/nav.html",
-		"./ui/html/pages/home.html",
-	}
-	ts, err := template.ParseFiles(files...)
+	snippets, err := app.storage.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	app.render(
+		w,
+		r,
+		http.StatusOK,
+		"home.html",
+		templateData{Snippets: snippets},
+	)
 }
 
+// create is a placeholder handler for creating a new snippet.
 func (app *application) create(w http.ResponseWriter, r *http.Request) {
 	// TODO: create a snippet
 }
 
+// list is a placeholder handler for listing all snippets.
 func (app *application) list(w http.ResponseWriter, r *http.Request) {
 	// TODO: show all snippets
 }
 
+// show fetches a snippet by ID from storage and renders the view page.
+// If the ID is invalid or the snippet does not exist, it returns a 404.
 func (app *application) show(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
@@ -53,5 +54,11 @@ func (app *application) show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%+v", snippet)
+	app.render(
+		w,
+		r,
+		http.StatusOK,
+		"view.html",
+		templateData{Snippet: snippet},
+	)
 }

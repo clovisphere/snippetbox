@@ -4,6 +4,9 @@ import (
 	"net/http"
 )
 
+// routes sets up the application's HTTP routes and returns a ServeMux.
+// It serves static files from ./ui/static/ and maps URL patterns to
+// handler methods like index, list, show, and create.
 func (app *application) routes() *http.ServeMux {
 
 	mux := http.NewServeMux()

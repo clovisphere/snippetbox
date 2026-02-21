@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,9 +14,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// application holds the dependencies for the web application, including
+// a logger, the storage layer for database access, and the template cache.
 type application struct {
-	logger  *slog.Logger
-	storage *models.Storage
+	logger        *slog.Logger
+	storage       *models.Storage
+	templateCache map[string]*template.Template
 }
 
 // main parses flags, connects to the database, and starts the HTTP server.
@@ -34,6 +38,7 @@ func main() {
 		),
 	)
 
+	// Connect to the MySQL database using the provided DSN
 	db, err := openDB(*dsn)
 	if err != nil {
 		logger.Error("Could not connect to database", slog.String("error", err.Error()))
@@ -41,14 +46,24 @@ func main() {
 	}
 	defer db.Close()
 
-	// Initialize the application
+	// Build a template cache by parsing all page templates along with
+	// the base layout and partials
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		logger.Error("Could not load template cache", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
+	// Initialize the application struct with logger, storage layer, and templates
 	app := &application{
-		logger:  logger,
-		storage: &models.Storage{DB: db},
+		logger:        logger,
+		storage:       &models.Storage{DB: db},
+		templateCache: templateCache,
 	}
 
 	logger.Info("Starting server", slog.String("addr", *addr))
 
+	// Start the HTTP server and listen on the specified address
 	if err := http.ListenAndServe(*addr, app.routes()); !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(err.Error())
 		os.Exit(1)
