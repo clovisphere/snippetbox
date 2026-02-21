@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/clovisphere/snippetbox/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-	logger *slog.Logger
+	logger  *slog.Logger
+	storage *models.Storage
 }
 
 // main parses flags, connects to the database, and starts the HTTP server.
@@ -41,7 +43,8 @@ func main() {
 
 	// Initialize the application
 	app := &application{
-		logger: logger,
+		logger:  logger,
+		storage: &models.Storage{DB: db},
 	}
 
 	logger.Info("Starting server", slog.String("addr", *addr))

@@ -1,8 +1,13 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
+
+	"github.com/clovisphere/snippetbox/internal/models"
 )
 
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
@@ -24,9 +29,7 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) create(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-
-	w.Write([]byte("Save a new snippet..."))
+	// TODO: create a snippet
 }
 
 func (app *application) list(w http.ResponseWriter, r *http.Request) {
@@ -34,5 +37,21 @@ func (app *application) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) show(w http.ResponseWriter, r *http.Request) {
-	// TODO: display snippet by ID
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	snippet, err := app.storage.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			http.NotFound(w, r)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	fmt.Fprintf(w, "%+v", snippet)
 }
