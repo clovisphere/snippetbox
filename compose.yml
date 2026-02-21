@@ -9,7 +9,7 @@ services:
 
     environment:
       MYSQL_ROOT_PASSWORD: r00t
-      MYSQL_DATABASE: snippet
+      MYSQL_DATABASE: snippetbox
       MYSQL_USER: dev
       MYSQL_PASSWORD: demo
 
