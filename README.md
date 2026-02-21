@@ -28,6 +28,16 @@ Optionally, having [Docker](https://www.docker.com/) installed is useful for run
 go mod download
 ```
 
+> Setup the database
+
+```sh
+# Start MySQL (via Docker)
+make start
+
+# Ensure the database exists and apply migrations
+make migration-up
+```
+
 > Build and run the application
 
 ```sh
