@@ -9,6 +9,14 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 
 # --------------------------------------------------------------------
+# Database migrations
+# --------------------------------------------------------------------
+
+DATABASE_URL     ?= mysql://dev:demo@tcp(127.0.0.1:3306)/snippetbox
+MIGRATE          := migrate
+MIGRATION_FOLDER ?= ./migrations
+
+# --------------------------------------------------------------------
 # Tools / Config
 # --------------------------------------------------------------------
 
@@ -27,7 +35,12 @@ GOTEST_FLAGS    ?= -coverprofile=$(COVERAGE_OUTPUT)
 
 .PHONY: build clean deps fmt vet local \
         test test-race test-integration help \
-        start stop restart logs
+        start stop restart logs \
+        migration-create migration-up migration-down migration-status
+
+# --------------------------------------------------------------------
+# Help
+# --------------------------------------------------------------------
 
 ## help: Display this help message with a list of all targets and their usage.
 help:
@@ -35,6 +48,10 @@ help:
 	@echo
 	@echo "Available targets:"
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/  /'
+
+# --------------------------------------------------------------------
+# Go project tasks
+# --------------------------------------------------------------------
 
 ## deps: Manage Go dependencies (tidy + download)
 deps:
@@ -78,6 +95,15 @@ test-integration: deps fmt vet
 	@echo "→ Running integration tests..."
 	@$(GO) test $(GOFLAGS) -p 1 $(GOTEST_FLAGS) ./...
 
+## clean: Remove build artifacts and coverage output
+clean:
+	@echo "→ Cleaning..."
+	@rm -rf bin "$(COVERAGE_OUTPUT)"
+
+# --------------------------------------------------------------------
+# Docker (services)
+# --------------------------------------------------------------------
+
 ## start: Start development services (e.g., MySQL) in detached mode
 start:
 	@echo "→ Starting development services..."
@@ -98,7 +124,33 @@ restart:
 logs:
 	@$(DOCKER_COMPOSE) logs -f
 
-## clean: Remove build artifacts and coverage output
-clean:
-	@echo "→ Cleaning..."
-	@rm -rf bin "$(COVERAGE_OUTPUT)"
+# --------------------------------------------------------------------
+# Migrations
+# --------------------------------------------------------------------
+
+## migration-create: Create a new SQL migration. Pass NAME=<migration_name>
+migration-create:
+	@if [ -z "$(NAME)" ]; then \
+		echo "ERROR: NAME is required. Usage: make migration-create NAME=your_migration_name"; \
+		exit 1; \
+	fi
+	@echo "→ Creating new migration: $(NAME)"
+	@$(MIGRATE) create -ext sql -dir $(MIGRATION_FOLDER) -seq $(NAME)
+	@echo "→ Migration $(NAME) created successfully."
+
+## migration-up: Apply all pending migrations
+migration-up:
+	@echo "→ Applying all migrations from $(MIGRATION_FOLDER)..."
+	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) up
+	@echo "→ All migrations applied successfully."
+
+## migration-down: Rollback the last migration
+migration-down:
+	@echo "→ Rolling back the last migration..."
+	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) down 1
+	@echo "→ Last migration rolled back."
+
+## migration-status: Show migration status
+migration-status:
+	@echo "→ Showing migration status..."
+	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) version
