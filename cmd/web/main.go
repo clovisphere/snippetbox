@@ -35,6 +35,7 @@ func main() {
 
 	if err := http.ListenAndServe(*addr, app.routes()); !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
 	logger.Info("Server gracefully shutdown 😊")
