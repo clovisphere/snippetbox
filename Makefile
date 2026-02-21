@@ -5,12 +5,24 @@
 # Put a short description after `##` on each target to show up in help.
 
 
-# Define the project name at the top of the Makefile
+# The name of the binary or project directory
 PROJECT_NAME = snippetbox
 
-SHELL := bash
+# --------------------------------------------------------------------
+# Shell Configuration
+# --------------------------------------------------------------------
+
+# Use bash instead of the default /bin/sh for better feature support
+SHELL        := bash
+
+# .ONESHELL ensures all lines in a recipe run in a single shell instance.
+# This allows variables and directory changes to persist between lines.
 .ONESHELL:
-.SHELLFLAGS := -eu -o pipefail -c
+
+# -e: Exit immediately if a command fails.
+# -u: Treat unset variables as an error.
+# -o pipefail: Ensure the exit code of a pipeline is the status of the last command to exit with a non-zero status.
+.SHELLFLAGS  := -eu -o pipefail -c
 
 # --------------------------------------------------------------------
 # Database migrations
