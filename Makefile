@@ -14,7 +14,7 @@ SHELL := bash
 
 DATABASE_DSN     ?= dev:demo@tcp(127.0.0.1:3306)/snippetbox
 MIGRATE          := migrate
-MIGRATION_FOLDER ?= ./migrations
+MIGRATION_FOLDER := ./migrations
 
 # --------------------------------------------------------------------
 # Tools / Config
@@ -144,7 +144,7 @@ migration-up:
 	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database "mysql://$(DATABASE_DSN)" up
 	@echo "→ All migrations applied successfully."
 
-## migration-down: Rollback migrations interactively (default: 1)
+## migration-down: Rollback migrations interactively
 migration-down:
 	@echo "→ Rolling back migrations..."
 	@read -p "Number of migrations to rollback (default: 1): " NUM; \
