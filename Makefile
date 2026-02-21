@@ -12,7 +12,7 @@ SHELL := bash
 # Database migrations
 # --------------------------------------------------------------------
 
-DATABASE_URL     ?= mysql://dev:demo@tcp(127.0.0.1:3306)/snippetbox
+DATABASE_DSN     ?= dev:demo@tcp(127.0.0.1:3306)/snippetbox
 MIGRATE          := migrate
 MIGRATION_FOLDER ?= ./migrations
 
@@ -36,7 +36,7 @@ GOTEST_FLAGS    ?= -coverprofile=$(COVERAGE_OUTPUT)
 .PHONY: build clean deps fmt vet local \
         test test-race test-integration help \
         start stop restart logs \
-        migration-create migration-up migration-down migration-status
+        migration-create migration-up migration-down migration-status migration-force
 
 # --------------------------------------------------------------------
 # Help
@@ -141,16 +141,28 @@ migration-create:
 ## migration-up: Apply all pending migrations
 migration-up:
 	@echo "→ Applying all migrations from $(MIGRATION_FOLDER)..."
-	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) up
+	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database "mysql://$(DATABASE_DSN)" up
 	@echo "→ All migrations applied successfully."
 
-## migration-down: Rollback the last migration
+## migration-down: Rollback migrations interactively (default: 1)
 migration-down:
-	@echo "→ Rolling back the last migration..."
-	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) down 1
-	@echo "→ Last migration rolled back."
+	@echo "→ Rolling back migrations..."
+	@read -p "Number of migrations to rollback (default: 1): " NUM; \
+	NUM=$${NUM:-1}; \
+	$(MIGRATE) -path $(MIGRATION_FOLDER) -database "mysql://$(DATABASE_DSN)" down $${NUM}; \
+	echo "→ Rolled back $${NUM} migration(s)."
 
 ## migration-status: Show migration status
 migration-status:
 	@echo "→ Showing migration status..."
-	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database $(DATABASE_URL) version
+	@$(MIGRATE) -path $(MIGRATION_FOLDER) -database "mysql://$(DATABASE_DSN)" version
+
+## migration-force: Force the database to a specific migration version
+migration-force:
+	@echo "→ Forcing migration version..."
+	@read -p "Enter the version to force: " VERSION; \
+	if [ -z "$${VERSION}" ]; then \
+		echo "ERROR: Version is required"; exit 1; \
+	fi; \
+	$(MIGRATE) -path $(MIGRATION_FOLDER) -database "mysql://$(DATABASE_DSN)" force $${VERSION}; \
+	echo "→ Migration version forced to $${VERSION}."
