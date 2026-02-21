@@ -109,12 +109,12 @@ start:
 	@echo "→ Starting development services..."
 	@$(DOCKER_COMPOSE) up -d
 
-## stop: Stop development services
+## stop: Stop development services and remove volumes (fresh start next time)
 stop:
 	@echo "→ Stopping development services..."
-	@$(DOCKER_COMPOSE) down
+	@$(DOCKER_COMPOSE) down -v
 
-## restart: Restart development services
+## restart: Restart development services without removing volumes
 restart:
 	@echo "→ Restarting development services..."
 	@$(DOCKER_COMPOSE) down
