@@ -11,10 +11,10 @@ func (app *application) routes() *http.ServeMux {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
-	mux.HandleFunc("POST /snippet/create", app.snippetCreate)
+	mux.HandleFunc("GET /{$}", app.index)
+	mux.HandleFunc("GET /snippets", app.list)
+	mux.HandleFunc("GET /snippets/{id}", app.show)
+	mux.HandleFunc("POST /snippets", app.create)
 
 	return mux
-
 }
