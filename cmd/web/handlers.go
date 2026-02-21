@@ -16,12 +16,16 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Populate template data with the latest snippets and render the home page.
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+
 	app.render(
 		w,
 		r,
 		http.StatusOK,
 		"home.html",
-		templateData{Snippets: snippets},
+		data,
 	)
 }
 
@@ -54,11 +58,15 @@ func (app *application) show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Populate template data with the snippet and render the view page.
+	data := app.newTemplateData(r)
+	data.Snippet = snippet
+
 	app.render(
 		w,
 		r,
 		http.StatusOK,
 		"view.html",
-		templateData{Snippet: snippet},
+		data,
 	)
 }

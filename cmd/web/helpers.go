@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // serverError logs an internal server error along with the request method,
@@ -58,4 +59,11 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 	// Write the buffered template content to the response
 	buf.WriteTo(w)
+}
+
+// newTemplateData returns a templateData struct with the current year set.
+func (app *application) newTemplateData(r *http.Request) templateData {
+	return templateData{
+		CurrentYear: time.Now().Year(),
+	}
 }

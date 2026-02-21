@@ -11,8 +11,8 @@
                 {{ .Content }}
             </div>
             <div class="metadata">
-                <time>Created: {{ .CreatedAt }}</time>
-                <time>Expires: {{ .ExpiresAt }}</time>
+                <time>{{ .CreatedAt | humanDate | printf "Created: %s" }}</time>
+                <time>{{ .ExpiresAt | humanDate | printf "Expires: %s" }}</time>
             </div>
         </div>
     {{ end }}

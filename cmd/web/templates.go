@@ -3,14 +3,27 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/clovisphere/snippetbox/internal/models"
 )
 
 // templateData holds dynamic data passed to HTML templates.
 type templateData struct {
-	Snippet  models.Snippet
-	Snippets []models.Snippet
+	CurrentYear int
+	Snippet     models.Snippet
+	Snippets    []models.Snippet
+}
+
+// functions defines custom template functions available in HTML templates.
+var functions = template.FuncMap{
+	"humanDate": humanDate,
+}
+
+// humanDate returns a formatted string representation of a time.Time value
+// in the form "02 Jan 2006 at 15:04".
+func humanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
 }
 
 // newTemplateCache parses all page templates along with the base layout
@@ -30,8 +43,8 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		// Extract the file name (e.g., "home.html") to use as the cache key
 		name := filepath.Base(page)
 
-		// Start by parsing the base layout template
-		ts, err := template.ParseFiles("./ui/html/base.html")
+		// Parse the base layout template first, setting up the template with custom functions.
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
 		if err != nil {
 			return nil, err
 		}
