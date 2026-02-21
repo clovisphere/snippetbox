@@ -11,12 +11,14 @@ import (
 	"os"
 
 	"github.com/clovisphere/snippetbox/internal/models"
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 // application holds the dependencies for the web application, including
 // a logger, the storage layer for database access, and the template cache.
 type application struct {
+	formDecoder   *form.Decoder
 	logger        *slog.Logger
 	storage       *models.Storage
 	templateCache map[string]*template.Template
@@ -54,8 +56,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize a new form decoder instance to map form data onto Go structs
+	formDecoder := form.NewDecoder()
+
 	// Initialize the application struct with logger, storage layer, and templates
 	app := &application{
+		formDecoder:   formDecoder,
 		logger:        logger,
 		storage:       &models.Storage{DB: db},
 		templateCache: templateCache,

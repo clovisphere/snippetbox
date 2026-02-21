@@ -4,6 +4,10 @@
 # Usage: `make help` to list targets.
 # Put a short description after `##` on each target to show up in help.
 
+
+# Define the project name at the top of the Makefile
+PROJECT_NAME = snippetbox
+
 SHELL := bash
 .ONESHELL:
 .SHELLFLAGS := -eu -o pipefail -c
@@ -112,13 +116,16 @@ start:
 ## stop: Stop development services and remove volumes (fresh start next time)
 stop:
 	@echo "→ Stopping development services..."
-	@$(DOCKER_COMPOSE) down -v
+	@$(DOCKER_COMPOSE) down
 
 ## restart: Restart development services without removing volumes
-restart:
-	@echo "→ Restarting development services..."
-	@$(DOCKER_COMPOSE) down
-	@$(DOCKER_COMPOSE) up -d
+restart: stop start
+
+## prune: Deep clean of services, volumes, and orphaned images
+prune:
+	@echo "→ Deep cleaning development environment..."
+	@$(DOCKER_COMPOSE) down -v --remove-orphans
+	@docker image prune -f --filter "label=com.docker.compose.project=$(PROJECT_NAME)"
 
 ## logs: Tail service logs
 logs:
