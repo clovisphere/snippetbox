@@ -114,3 +114,23 @@ func (app *application) show(w http.ResponseWriter, r *http.Request) {
 		data,
 	)
 }
+
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
+	// Displays the signup form
+}
+
+func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
+	// Processes the signup form submission
+}
+
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	// Displays the login form
+}
+
+func (app *application) userAuthenticate(w http.ResponseWriter, r *http.Request) {
+	// Verifies credentials and creates a session
+}
+
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	// Destroys the session
+}
