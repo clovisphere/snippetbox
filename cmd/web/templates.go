@@ -11,6 +11,7 @@ import (
 // templateData holds dynamic data passed to HTML templates.
 type templateData struct {
 	CurrentYear int
+	Flash       string
 	Form        any
 	Snippet     models.Snippet
 	Snippets    []models.Snippet
