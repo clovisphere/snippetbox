@@ -17,9 +17,9 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
 	mux.HandleFunc("GET /{$}", app.index)
-	mux.HandleFunc("GET /snippets/{id}", app.show)
+	mux.HandleFunc("GET /snippets/view/{id}", app.show)
 	mux.HandleFunc("GET /snippets/create", app.create)
-	mux.HandleFunc("POST /snippets", app.createPost)
+	mux.HandleFunc("POST /snippets/create", app.createPost)
 
 	// standard defines a middleware chain for all application routes.
 	// Handlers are executed in order: recoverPanic -> logRequest -> commonHeaders.

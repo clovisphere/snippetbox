@@ -78,7 +78,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/snippets/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippets/view/%d", id), http.StatusSeeOther)
 }
 
 // show fetches a snippet by ID from storage and renders the view page.
