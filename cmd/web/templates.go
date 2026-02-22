@@ -10,11 +10,12 @@ import (
 
 // templateData holds dynamic data passed to HTML templates.
 type templateData struct {
-	CurrentYear int
-	Flash       string
-	Form        any
-	Snippet     models.Snippet
-	Snippets    []models.Snippet
+	CurrentYear     int
+	Flash           string
+	Form            any
+	IsAuthenticated bool
+	Snippet         models.Snippet
+	Snippets        []models.Snippet
 }
 
 // functions defines custom template functions available in HTML templates.
