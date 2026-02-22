@@ -67,8 +67,9 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 // newTemplateData returns a templateData struct with `CurrentYear` and `Flash` set.
 func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
-		CurrentYear: time.Now().Year(),
-		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		CurrentYear:     time.Now().Year(),
+		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuthenticated: app.isAuthenticated(r),
 	}
 }
 
