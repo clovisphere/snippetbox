@@ -95,7 +95,15 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 }
 
 // isAuthenticated returns true if the current request is from an authenticated user,
-// otherwise it returns false.
+// otherwise it returns false. It retrieves this status from the request context,
+// which is populated by the authenticate middleware.
 func (app *application) isAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context(), "authenticatedUserID")
+	// Extract the value from the context using our custom key.
+	// We use a type assertion to ensure the value is a boolean.
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuthenticated
 }
