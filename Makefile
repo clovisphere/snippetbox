@@ -111,10 +111,13 @@ test-integration: deps fmt vet
 	@echo "→ Running integration tests..."
 	@$(GO) test $(GOFLAGS) -p 1 $(GOTEST_FLAGS) ./...
 
-## clean: Remove build artifacts and coverage output
+## clean: Remove build artifacts, coverage output, and test cache
 clean:
-	@echo "→ Cleaning..."
-	@rm -rf bin "$(COVERAGE_OUTPUT)"
+	@echo "→ Cleaning build artifacts and coverage..."
+	@rm -rf bin $(COVERAGE_OUTPUT)
+	@echo "→ Clearing Go test cache..."
+	@$(GO) clean -testcache
+	@echo "✅ Clean complete"
 
 # --------------------------------------------------------------------
 # Docker (services)

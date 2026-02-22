@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
 )
@@ -32,17 +33,52 @@ func newTestApplication(t *testing.T) *application {
 	}
 }
 
-// newTestServer starts a TLS test server with the provided handler.
-// It uses t.Cleanup to automatically shut down the server when the test finishes.
+// newTestServer initializes and returns a new TLS test server.
+// The server is configured with a cookie jar to support session persistence
+// and a custom redirect policy to allow inspection of intermediate responses.
 func newTestServer(t *testing.T, h http.Handler) *testServer {
+	// Initialize the TLS server with the provided handler.
 	ts := httptest.NewTLSServer(h)
 
-	// Automatically close the server when the test (and sub-tests) complete.
+	// Initialize a cookie jar. This allows the test client to automatically
+	// store and send cookies (like session IDs) across multiple requests.
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Add the cookie jar to the test server's client.
+	ts.Client().Jar = jar
+
+	// Disable automatic redirect following. By returning http.ErrUseLastResponse,
+	// the client will stop and return the 302/303 response itself, allowing
+	// us to assert on redirect locations and headers.
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	// Register a cleanup function to automatically shut down the server
+	// when the test (and any sub-tests) finishes.
 	t.Cleanup(func() {
 		ts.Close()
 	})
 
 	return &testServer{ts}
+}
+
+// resetClientCookieJar replaces the existing cookie jar in the test server's client
+// with a new, empty one. This effectively clears all cookies (including session
+// and CSRF cookies) to simulate a fresh browser state or a logout.
+func (ts *testServer) resetClientCookieJar(t *testing.T) {
+	// Initialize a new, empty cookie jar.
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Update the test server's client with the new jar.
+	// The old jar and its cookies will be garbage collected.
+	ts.Client().Jar = jar
 }
 
 // get performs a GET request against the test server for a given path.
