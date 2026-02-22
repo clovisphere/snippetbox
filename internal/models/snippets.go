@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-// Storage provides methods to interact with the database tables.
-type Storage struct {
-	DB *sql.DB
-}
-
 // Snippet represents a single snippet record in the database.
 type Snippet struct {
 	ID        int
@@ -20,10 +15,16 @@ type Snippet struct {
 	ExpiresAt time.Time
 }
 
+// SnippetModel wraps a sql.DB connection pool and provides methods
+// for interacting with the snippets table.
+type SnippetModel struct {
+	DB *sql.DB
+}
+
 // Insert adds a new snippet to the database.
 // title: snippet title, content: snippet body, expires: days until expiration.
 // Returns the ID of the new snippet or an error.
-func (s *Storage) Insert(title, content string, expires int) (int, error) {
+func (s *SnippetModel) Insert(title, content string, expires int) (int, error) {
 	stmt := `INSERT INTO snippets (title, content, created_at, expires_at)
 	VALUES(?, ?, UTC_TIMESTAMP, DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
 
@@ -42,7 +43,7 @@ func (s *Storage) Insert(title, content string, expires int) (int, error) {
 
 // Get retrieves a snippet by ID.
 // Returns an error if no matching snippet is found.
-func (s *Storage) Get(id int) (Snippet, error) {
+func (s *SnippetModel) Get(id int) (Snippet, error) {
 	stmt := `SELECT id, title, content, created_at, expires_at FROM snippets
 	WHERE expires_at > UTC_TIMESTAMP() AND id = ?`
 
@@ -61,7 +62,7 @@ func (s *Storage) Get(id int) (Snippet, error) {
 }
 
 // Latest returns the 10 most recently created, non-expired snippets.
-func (s *Storage) Latest() ([]Snippet, error) {
+func (s *SnippetModel) Latest() ([]Snippet, error) {
 	stmt := `SELECT id, title, content, created_at, expires_at FROM snippets
 	WHERE expires_at > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
 

@@ -20,7 +20,7 @@ type snippetCreateForm struct {
 
 // index fetches the latest snippets from storage and renders the home page.
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
-	snippets, err := app.storage.Latest()
+	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
 		return
@@ -72,7 +72,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := app.storage.Insert(form.Title, form.Content, form.Expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
@@ -92,7 +92,7 @@ func (app *application) show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	snippet, err := app.storage.Get(id)
+	snippet, err := app.snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			http.NotFound(w, r)

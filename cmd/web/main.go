@@ -19,13 +19,15 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// application holds the dependencies for the web application, including
-// a form decder, a logger, a session manager, the storage layer for database access, and the template cache.
+// application holds the application-wide dependencies for the web server.
+// It includes the form decoder, structured logger, session manager,
+// data models for snippets and users, and the pre-compiled template cache.
 type application struct {
 	formDecoder    *form.Decoder
 	logger         *slog.Logger
 	sessionManager *scs.SessionManager
-	storage        *models.Storage
+	snippets       *models.SnippetModel
+	users          *models.UserModel
 	templateCache  map[string]*template.Template
 }
 
@@ -70,13 +72,15 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = true
 
-	// Initialize the application struct with form decoder, logger, session manager, storage layer, and templates
+	// Initialize the application struct, injecting the dependencies including
+	// the structured logger, data models, and middleware managers.
 	app := &application{
-		formDecoder:    formDecoder,
 		logger:         logger,
-		sessionManager: sessionManager,
-		storage:        &models.Storage{DB: db},
+		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
 		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	// Initialize a tls.Config struct to hold non-default TLS settings,
