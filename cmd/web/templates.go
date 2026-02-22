@@ -30,7 +30,11 @@ var functions = template.FuncMap{
 // humanDate returns a formatted string representation of a time.Time value
 // in the form "02 Jan 2006 at 15:04".
 func humanDate(t time.Time) string {
-	return t.Format("02 Jan 2006 at 15:04")
+	if t.IsZero() {
+		return ""
+	}
+
+	return t.UTC().Format("02 Jan 2006 at 15:04")
 }
 
 // newTemplateCache creates a map of compiled templates, allowing for fast
