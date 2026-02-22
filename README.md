@@ -85,6 +85,7 @@ For development, you can run MySQL with Docker using:
 make start   # Starts services
 make stop    # Stops services
 make restart # Restarts services
+make prune   # Prunes services (deep cleanup)
 make logs    # Tail logs
 ```
 
