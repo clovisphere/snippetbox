@@ -9,19 +9,23 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/clovisphere/snippetbox/internal/models"
 	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 // application holds the dependencies for the web application, including
-// a logger, the storage layer for database access, and the template cache.
+// a form decder, a logger, a session manager, the storage layer for database access, and the template cache.
 type application struct {
-	formDecoder   *form.Decoder
-	logger        *slog.Logger
-	storage       *models.Storage
-	templateCache map[string]*template.Template
+	formDecoder    *form.Decoder
+	logger         *slog.Logger
+	sessionManager *scs.SessionManager
+	storage        *models.Storage
+	templateCache  map[string]*template.Template
 }
 
 // main parses flags, connects to the database, and starts the HTTP server.
@@ -59,12 +63,18 @@ func main() {
 	// Initialize a new form decoder instance to map form data onto Go structs
 	formDecoder := form.NewDecoder()
 
-	// Initialize the application struct with logger, storage layer, and templates
+	// Initialize a new session manager using a MySQL-backed storage engine
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
+	// Initialize the application struct with form decoder, logger, session manager, storage layer, and templates
 	app := &application{
-		formDecoder:   formDecoder,
-		logger:        logger,
-		storage:       &models.Storage{DB: db},
-		templateCache: templateCache,
+		formDecoder:    formDecoder,
+		logger:         logger,
+		sessionManager: sessionManager,
+		storage:        &models.Storage{DB: db},
+		templateCache:  templateCache,
 	}
 
 	logger.Info("Starting server", slog.String("addr", *addr))

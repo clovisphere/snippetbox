@@ -16,10 +16,14 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	mux.HandleFunc("GET /{$}", app.index)
-	mux.HandleFunc("GET /snippets/view/{id}", app.show)
-	mux.HandleFunc("GET /snippets/create", app.create)
-	mux.HandleFunc("POST /snippets/create", app.createPost)
+	// dynamic defines a middleware chain for routes that require session state.
+	// It automatically loads and saves session data for the current request.
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	mux.Handle("GET /{$}", dynamic.ThenFunc(app.index))
+	mux.Handle("GET /snippets/view/{id}", dynamic.ThenFunc(app.show))
+	mux.Handle("GET /snippets/create", dynamic.ThenFunc(app.create))
+	mux.Handle("POST /snippets/create", dynamic.ThenFunc(app.createPost))
 
 	// standard defines a middleware chain for all application routes.
 	// Handlers are executed in order: recoverPanic -> logRequest -> commonHeaders.
