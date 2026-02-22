@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/clovisphere/snippetbox/ui"
 	"github.com/justinas/alice"
 )
 
@@ -14,9 +15,12 @@ func (app *application) routes() http.Handler {
 	// Create a new ServeMux for routing
 	mux := http.NewServeMux()
 
-	// Serve static files from ./ui/static/ at /static/
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+	// Register a handler to serve static files (CSS, JS, images) directly
+	// from our embedded ui.Files file system.
+	//
+	// Note: http.FileServerFS automatically handles path routing, so we
+	// no longer need to manually strip the "/static" prefix.
+	mux.Handle("GET /static/", http.FileServerFS(ui.Files))
 
 	// dynamic defines a middleware chain for routes that require session state,
 	// CSRF protection, and user authentication status.
