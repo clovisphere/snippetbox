@@ -8,14 +8,16 @@ import (
 	"github.com/clovisphere/snippetbox/internal/models"
 )
 
-// templateData holds dynamic data passed to HTML templates.
+// templateData acts as a container for any dynamic data that we want
+// to pass to our HTML templates.
 type templateData struct {
-	CurrentYear     int
-	Flash           string
-	Form            any
-	IsAuthenticated bool
-	Snippet         models.Snippet
-	Snippets        []models.Snippet
+	CSRFToken       string           // A token to prevent CSRF attacks on POST forms.
+	CurrentYear     int              // The current year for the footer copyright notice.
+	Flash           string           // A one-time message for the user (e.g., "Login successful").
+	Form            any              // Form data and validation errors for re-population.
+	IsAuthenticated bool             // A boolean flag to toggle UI elements for logged-in users.
+	Snippet         models.Snippet   // A single snippet record.
+	Snippets        []models.Snippet // A slice of multiple snippet records.
 }
 
 // functions defines custom template functions available in HTML templates.
