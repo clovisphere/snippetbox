@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -132,13 +134,50 @@ func (ts *testServer) get(t *testing.T, urlPath string) testResponse {
 	}
 }
 
+// postForm sends a POST request to the test server with the provided form data.
+// It automatically sets the Content-Type header and handles the response
+// parsing into a testResponse struct.
+func (ts *testServer) postForm(t *testing.T, urlPath string, form url.Values) testResponse {
+	// Create a new POST request. form.Encode() converts the url.Values into
+	// a URL-encoded string (e.g., "name=Bob&email=bob@example.com").
+	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Set the standard Content-Type for form submissions.
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Set the Sec-Fetch-Site header to "same-origin". This is important if
+	// your application middleware checks for Same-Origin requests to
+	// prevent CSRF or unauthorized cross-site access.
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+
+	// Use the test server's client to execute the request. This ensures
+	// that any cookies in the Client's Jar are sent with the request.
+	res, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	// Read the response body.
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return testResponse{
+		status:  res.StatusCode,
+		headers: res.Header,
+		cookies: res.Cookies(),
+		body:    string(bytes.TrimSpace(body)),
+	}
+}
+
 // extractCSRFToken is a test helper that retrieves the CSRF token value from
 // an HTML response body. It fails the test immediately if no token is found.
 func extractCSRFToken(t *testing.T, body string) string {
-	// t.Helper() marks this function as a test helper so that error reports
-	// point to the actual test line rather than this function.
-	t.Helper()
-
 	// FindStringSubmatch returns a slice containing the full match and the
 	// captured group. We expect a length of 2: [Full Match, Captured Token].
 	matches := csrfTokenRX.FindStringSubmatch(body)
