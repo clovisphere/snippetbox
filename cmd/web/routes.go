@@ -18,10 +18,13 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	// dynamic defines a middleware chain for routes that require session state
-	// and CSRF protection. It automatically loads and saves session data
-	// and applies CSRF checks to all POST requests within this chain.
-	dynamic := alice.New(app.sessionManager.LoadAndSave, preventCSRF)
+	// dynamic defines a middleware chain for routes that require session state,
+	// CSRF protection, and user authentication status.
+	//
+	// 1. LoadAndSave: Persists session data across requests.
+	// 2. preventCSRF: Protects against Cross-Site Request Forgery.
+	// 3. app.authenticate: Verifies the session user still exists in the DB.
+	dynamic := alice.New(app.sessionManager.LoadAndSave, preventCSRF, app.authenticate)
 
 	// Public routes (no authentication required)
 	mux.Handle("GET /{$}", dynamic.ThenFunc(app.index))
