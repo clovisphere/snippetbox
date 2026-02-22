@@ -2,7 +2,10 @@
 // boilerplate and improve test readability.
 package assert
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // Equal compares two comparable values of the same type.
 // If the values are not equal, it fails the test and logs the mismatch.
@@ -17,5 +20,19 @@ func Equal[T comparable](t *testing.T, actual, expected T) {
 		// Using quoted formatting (%v or %#v) helps identify empty strings
 		// or specific types during a failure.
 		t.Errorf("\n[Assert Equal Failed]\n  actual:   %v\n  expected: %v", actual, expected)
+	}
+}
+
+// StringContains is a test helper that verifies if a string (actual) contains
+// a specific substring (expectedSubstring). If the substring is not found,
+// it fails the test with a descriptive error message.
+func StringContains(t *testing.T, actual, expectedSubstring string) {
+	// t.Helper() marks this function as a test helper, ensuring that
+	// when a test fails, the line number reported points to the
+	// calling test function rather than this helper.
+	t.Helper()
+
+	if !strings.Contains(actual, expectedSubstring) {
+		t.Errorf("got: %q; expected to contain: %q", actual, expectedSubstring)
 	}
 }
