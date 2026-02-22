@@ -30,6 +30,27 @@ services:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
 
+  # -------------------------------------------------------------------
+  # Test Database: Dedicated instance for integration testing
+  # -------------------------------------------------------------------
+  mysql_test:
+    image: mysql:8.0.45-bookworm
+    container_name: mysql_test
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: r00t
+      MYSQL_DATABASE: snippetbox_test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    # We use a different port (3307) so it doesn't conflict with dev
+    ports:
+      - "3307:3306"
+    # No persistent volume needed; tests should be ephemeral
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
 volumes:
   mysql_data:
     driver: local
