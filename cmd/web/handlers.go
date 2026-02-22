@@ -237,6 +237,25 @@ func (app *application) userAuthenticate(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, "/snippets/create", http.StatusSeeOther)
 }
 
+// userLogoutPost handles the POST request to log out the current user.
+// It destroys the user session and redirects them to the home page.
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
-	// Destroys the session
+	// Renew the session token before destruction. This is a security best
+	// practice to ensure any session data is cleared with a fresh ID context.
+	if err := app.sessionManager.RenewToken(r.Context()); err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	// Use the Destroy() method to delete the entire session from the
+	// session store and notify the user's browser to delete the cookie.
+	if err := app.sessionManager.Destroy(r.Context()); err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	// Because we destroyed the session, we can't add a flash message to it
+	// directly. If you need a flash message, you would need to recreate
+	// a session or use a cookie-based approach. For now, we simply redirect.
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
