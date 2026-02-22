@@ -81,9 +81,18 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 	return id, nil
 }
 
-// Exists checks if a user with a specific ID exists in the users table.
+// Exists checks if a user with a specific ID exists in the database.
+// It returns true if the user exists, otherwise false.
 func (m *UserModel) Exists(id int) (bool, error) {
-	return false, nil
+	var exists bool
+
+	// Use the EXISTS() function which returns 1 (true) or 0 (false).
+	// This is more performant than selecting a count or the full record.
+	query := "SELECT EXISTS(SELECT true FROM users WHERE id = ?)"
+
+	err := m.DB.QueryRow(query, id).Scan(&exists)
+
+	return exists, err
 }
 
 // Get retrieves a specific user record based on its ID.
