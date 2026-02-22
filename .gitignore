@@ -29,3 +29,7 @@ bin/
 
 # Mac OS
 .DS_Store
+
+# TLS certificates and private keys (local development)
+*.pem
+tls/*.pem

@@ -67,6 +67,7 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
 
 	// Initialize the application struct with form decoder, logger, session manager, storage layer, and templates
 	app := &application{
@@ -86,7 +87,7 @@ func main() {
 	logger.Info("Starting server", slog.String("addr", srv.Addr))
 
 	// Start the HTTP server and listen on the specified address
-	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+	if err := srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem"); !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}

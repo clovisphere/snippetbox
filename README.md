@@ -38,6 +38,42 @@ make start
 make migration-up
 ```
 
+### 🔐 Running with HTTPS (mkcert)
+
+Snippet-Box runs over HTTPS by default. For local development, generate trusted certificates using [mkcert](https://github.com/FiloSottile/mkcert)
+
+> Install mkcert
+
+##### macOS ([Homebrew](https://brew.sh/))
+
+ℹ️ The application has been tested on **macOS**.
+
+```sh
+brew install mkcert
+brew install nss # needed for Firefox support
+```
+
+> Initialize the local CA (one-time setup)
+
+```sh
+mkcert -install
+```
+
+> Generate `cert.pem` and `key.pem` in the [tls](./tls) folder
+
+```sh
+# From the root of the project
+cd tls
+mkcert -key-file key.pem -cert-file cert.pem localhost 127.0.0.1 ::1
+```
+
+This creates:
+
+- **cert.pem** — TLS certificate
+- **key.pem** — Private key
+
+These certificates are valid for `localhost`, `127.0.0.1`, and `::1`.
+
 > Build and run the application
 
 ```sh
@@ -50,9 +86,16 @@ Or just use the [Makefile](./Makefile)
 make help  # Lists all available commands and usage
 ```
 
-By default, the application will listen on port `4000`. To use a custom port:
+You can then access the application over HTTPS at:
 
 ```sh
+https://localhost:4000
+```
+
+By default, the application listens on port `4000`. To use a custom port:
+
+```sh
+# Using go run
 go run main.go addr=":6969"
 # or using Makefile
 make local PORT=6969
