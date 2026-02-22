@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"errors"
 	"flag"
@@ -78,10 +79,22 @@ func main() {
 		templateCache:  templateCache,
 	}
 
+	// Initialize a tls.Config struct to hold non-default TLS settings,
+	// restricted to elliptic curves with assembly implementations for performance.
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
+	// Initialize a new http.Server struct with custom address, handler,
+	// error logger, TLS configuration, and conservative network timeouts.
 	srv := &http.Server{
-		Addr:     *addr,
-		Handler:  app.routes(),
-		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		Addr:         *addr,
+		Handler:      app.routes(),
+		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	logger.Info("Starting server", slog.String("addr", srv.Addr))
