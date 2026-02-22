@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/justinas/nosurf"
 )
 
 // commonHeaders is middleware that adds security-focused headers (CSP, Referrer,
@@ -82,4 +84,22 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)
 	})
+}
+
+// preventCSRF middleware uses the nosurf package to provide CSRF protection
+// to all POST requests. It sets a customized cookie with the HttpOnly and
+// Secure attributes for enhanced security.
+func preventCSRF(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+
+	// Configure the CSRF cookie. HttpOnly ensures the cookie cannot be
+	// accessed via client-side JavaScript. Secure ensures it is only
+	// sent over HTTPS connections.
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+	})
+
+	return csrfHandler
 }
