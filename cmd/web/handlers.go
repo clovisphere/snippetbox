@@ -10,6 +10,13 @@ import (
 	"github.com/clovisphere/snippetbox/internal/validator"
 )
 
+// userLoginForm holds the form data and validation errors for the user login flow.
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 // userSignupForm holds the form data and validation errors for user registration.
 type userSignupForm struct {
 	Name                string `form:"name"`
@@ -170,8 +177,12 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
+// userLogin handles the GET request to display the login form.
+// It initializes a new userLoginForm and renders the login template.
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display a form for logging in a user...")
+	data := app.newTemplateData(r)
+	data.Form = userLoginForm{}
+	app.render(w, r, http.StatusOK, "login.html", data)
 }
 
 func (app *application) userAuthenticate(w http.ResponseWriter, r *http.Request) {
