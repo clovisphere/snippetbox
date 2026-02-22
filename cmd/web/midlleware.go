@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -102,4 +103,36 @@ func preventCSRF(next http.Handler) http.Handler {
 	})
 
 	return csrfHandler
+}
+
+// authenticate middleware retrieves the authenticatedUserID from the session,
+// verifies the user exists in the database, and updates the request context
+// with the authentication status.
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the authenticatedUserID from the session. GetInt returns
+		// 0 if the value doesn't exist.
+		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Check the database to see if the user ID still exists. This handles
+		// cases where a user might be deleted while their session is still active.
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+
+		// If the user exists, create a copy of the request with the
+		// isAuthenticatedContextKey set to true in the context.
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+			r = r.WithContext(ctx)
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
