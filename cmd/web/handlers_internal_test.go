@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/clovisphere/snippetbox/internal/assert"
@@ -95,25 +96,89 @@ func TestSnippetView(t *testing.T) {
 	}
 }
 
-// TestUserSignup verifies that the signup page is rendered correctly and
-// contains the necessary security tokens and session cookies required
-// for a successful form submission.
+// TestUserSignup performs a suite of table-driven tests for the user registration
+// flow. It validates successful creation, validation errors, and CSRF protection.
 func TestUserSignup(t *testing.T) {
 	app := newTestApplication(t)
 	ts := newTestServer(t, app.routes())
 
-	// Request the signup form.
-	res := ts.get(t, "/user/signup")
+	// Define standard test data constants.
+	const (
+		validName     = "Ken Thompson"
+		validPassword = "@V3ry$3cur3P@$$w0rd!"
+		validEmail    = "ken@example.com"
+		signupFormTag = `<form action="/user/signup" method="POST" novalidate>`
+	)
 
-	// Assert the page loaded successfully.
-	assert.Equal(t, res.status, http.StatusOK)
+	tests := []struct {
+		description       string
+		name              string
+		email             string
+		password          string
+		useValidCSRFToken bool
+		expectedStatus    int
+		expectedBody      string
+	}{
+		{
+			description:       "Valid submission",
+			name:              validName,
+			email:             validEmail,
+			password:          validPassword,
+			useValidCSRFToken: true,
+			expectedStatus:    http.StatusSeeOther, // Redirects to login on success
+		},
+		{
+			description:       "Missing CSRF token",
+			name:              validName,
+			email:             validEmail,
+			password:          validPassword,
+			useValidCSRFToken: false,
+			expectedStatus:    http.StatusBadRequest,
+		},
+		{
+			description:       "Invalid email format",
+			name:              validName,
+			email:             "not-an-email",
+			password:          validPassword,
+			useValidCSRFToken: true,
+			expectedStatus:    http.StatusUnprocessableEntity,
+			expectedBody:      signupFormTag,
+		},
+		{
+			description:       "Short password",
+			name:              validName,
+			email:             validEmail,
+			password:          "123",
+			useValidCSRFToken: true,
+			expectedStatus:    http.StatusUnprocessableEntity,
+			expectedBody:      signupFormTag,
+		},
+	}
 
-	// Extract the CSRF token to ensure it is present in the HTML.
-	// If the token is missing, extractCSRFToken will call t.Fatal.
-	token := extractCSRFToken(t, res.body)
-	t.Logf("Extracted CSRF token: %q", token)
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			ts.resetClientCookieJar(t)
 
-	// Log cookie details for debugging session persistence.
-	// In a real scenario, we expect to see a session cookie here.
-	t.Logf("Response Cookies: %v", res.cookies)
+			// GET the form to obtain the CSRF token
+			res := ts.get(t, "/user/signup")
+
+			form := url.Values{}
+			form.Add("name", tt.name)
+			form.Add("email", tt.email)
+			form.Add("password", tt.password)
+
+			if tt.useValidCSRFToken {
+				form.Add("csrf_token", extractCSRFToken(t, res.body))
+			}
+
+			// POST the data
+			res = ts.postForm(t, "/user/signup", form)
+
+			// Assert status and body content
+			assert.Equal(t, res.status, tt.expectedStatus)
+			if tt.expectedBody != "" {
+				assert.StringContains(t, res.body, tt.expectedBody)
+			}
+		})
+	}
 }
