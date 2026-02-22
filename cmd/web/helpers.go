@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 // serverError logs an internal server error along with the request method,
@@ -64,9 +65,12 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf.WriteTo(w)
 }
 
-// newTemplateData returns a templateData struct with `CurrentYear` and `Flash` set.
+// newTemplateData initializes a templateData struct and populates it with
+// common dynamic data: the CSRF token, the current year, any flash message
+// in the session, and the user's authentication status.
 func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
+		CSRFToken:       nosurf.Token(r),
 		CurrentYear:     time.Now().Year(),
 		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
