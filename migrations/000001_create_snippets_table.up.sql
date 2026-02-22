@@ -8,4 +8,4 @@ CREATE TABLE snippets (
 ) ENGINE=InnoDB;
 
 -- Add an index on the created_at column
-CREATE INDEX idx_snippets_created_at ON snippets(created_at);
+CREATE INDEX idx_snippets_created_at ON snippets (created_at);
