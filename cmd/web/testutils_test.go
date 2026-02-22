@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 	"time"
 
@@ -28,6 +30,11 @@ type testResponse struct {
 	cookies []*http.Cookie
 	body    string
 }
+
+// csrfTokenRX is a pre-compiled regular expression that captures the value of
+// the CSRF token from an HTML hidden input field. We compile it once at
+// package level for better performance during test execution.
+var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+)'>`)
 
 // newTestApplication initializes a minimal application instance with a discarded
 // logger to keep test output clean.
@@ -123,4 +130,23 @@ func (ts *testServer) get(t *testing.T, urlPath string) testResponse {
 		cookies: res.Cookies(),
 		body:    string(bytes.TrimSpace(body)),
 	}
+}
+
+// extractCSRFToken is a test helper that retrieves the CSRF token value from
+// an HTML response body. It fails the test immediately if no token is found.
+func extractCSRFToken(t *testing.T, body string) string {
+	// t.Helper() marks this function as a test helper so that error reports
+	// point to the actual test line rather than this function.
+	t.Helper()
+
+	// FindStringSubmatch returns a slice containing the full match and the
+	// captured group. We expect a length of 2: [Full Match, Captured Token].
+	matches := csrfTokenRX.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
+	}
+
+	// Unescape the string to handle characters like '+' or '=' correctly
+	// if they were encoded in the HTML.
+	return html.UnescapeString(matches[1])
 }
