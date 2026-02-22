@@ -8,6 +8,11 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/alexedwards/scs/v2"
+	"github.com/clovisphere/snippetbox/internal/models/mocks"
+	"github.com/go-playground/form/v4"
 )
 
 // testServer wraps a httptest.Server instance to provide custom helper methods.
@@ -27,9 +32,25 @@ type testResponse struct {
 // newTestApplication initializes a minimal application instance with a discarded
 // logger to keep test output clean.
 func newTestApplication(t *testing.T) *application {
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	formDecoder := form.NewDecoder()
+
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	return &application{
 		// slog.DiscardHandler prevents logs from cluttering the 'go test' output.
-		logger: slog.New(slog.DiscardHandler),
+		logger:         slog.New(slog.DiscardHandler),
+		snippets:       &mocks.SnippetModel{},
+		users:          &mocks.UserModel{},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 }
 

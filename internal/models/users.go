@@ -19,6 +19,26 @@ type User struct {
 	CreatedAt      time.Time
 }
 
+// UserModelInterface defines the set of methods required for user-related
+// data operations. This abstraction enables the application to switch
+// between a production database (UserModel) and a mock implementation (mocks.UserModel)
+// for testing authentication and authorization flows.
+type UserModelInterface interface {
+	// Insert adds a new user record. It should return ErrDuplicateEmail if
+	// the email address is already in use.
+	Insert(name, email, password string) error
+
+	// Authenticate verifies if a user exists with the provided credentials.
+	// It returns the user's ID on success, or ErrInvalidCredentials on failure.
+	Authenticate(email, password string) (int, error)
+
+	// Exists checks if a specific user ID exists in the system.
+	Exists(id int) (bool, error)
+
+	// Get retrieves a full User record by its unique ID.
+	Get(id int) (*User, error)
+}
+
 // UserModel wraps a sql.DB connection pool and provides methods
 // for interacting with the users table.
 type UserModel struct {

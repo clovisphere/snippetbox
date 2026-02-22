@@ -15,6 +15,19 @@ type Snippet struct {
 	ExpiresAt time.Time
 }
 
+// SnippetModelInterface defines the set of methods required for interacting
+// with snippet data. This abstraction allows the application to swap
+// between a real database (SnippetModel) and a mock implementation (mocks.SnippetModel)
+// during testing.
+type SnippetModelInterface interface {
+	// Insert adds a new snippet to the database and returns the newly created ID.
+	Insert(title, content string, expires int) (int, error)
+	// Get retrieves a specific snippet by its unique ID.
+	Get(id int) (Snippet, error)
+	// Latest returns the most recently created snippets, typically limited to the top 10.
+	Latest() ([]Snippet, error)
+}
+
 // SnippetModel wraps a sql.DB connection pool and provides methods
 // for interacting with the snippets table.
 type SnippetModel struct {
