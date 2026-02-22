@@ -36,3 +36,16 @@ func StringContains(t *testing.T, actual, expectedSubstring string) {
 		t.Errorf("got: %q; expected to contain: %q", actual, expectedSubstring)
 	}
 }
+
+// NilError is a test helper that checks if an error is nil.
+// If it is not, it reports an error and identifies the calling
+// line as the source of the failure.
+func NilError(t *testing.T, actual error) {
+	// t.Helper() ensures that the failure is reported at the
+	// line where NilError was called, rather than inside this function.
+	t.Helper()
+
+	if actual != nil {
+		t.Errorf("expected: nil error; got: %v", actual)
+	}
+}
