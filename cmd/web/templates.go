@@ -2,10 +2,12 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"github.com/clovisphere/snippetbox/internal/models"
+	"github.com/clovisphere/snippetbox/ui"
 )
 
 // templateData acts as a container for any dynamic data that we want
@@ -31,45 +33,40 @@ func humanDate(t time.Time) string {
 	return t.Format("02 Jan 2006 at 15:04")
 }
 
-// newTemplateCache parses all page templates along with the base layout
-// and partials, returning a map of template name to compiled template.
+// newTemplateCache creates a map of compiled templates, allowing for fast
+// lookups during request handling. It uses an embedded file system to
+// ensure templates are bundled within the application binary.
 func newTemplateCache() (map[string]*template.Template, error) {
-	// Initialize an empty map to store compiled templates
 	cache := map[string]*template.Template{}
 
-	// Find all page templates in the pages directory
-	pages, err := filepath.Glob("./ui/html/pages/*.html")
+	// Use fs.Glob to find all files in the pages directory within the embedded FS.
+	// Note: paths in embed.FS do not use the './' prefix.
+	pages, err := fs.Glob(ui.Files, "html/pages/*.html")
 	if err != nil {
 		return nil, err
 	}
 
-	// Loop over each page template
 	for _, page := range pages {
-		// Extract the file name (e.g., "home.html") to use as the cache key
 		name := filepath.Base(page)
 
-		// Parse the base layout template first, setting up the template with custom functions.
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
+		// Define the template patterns to parse. The order matters:
+		// base.html defines the layout, partials provide reusable components,
+		// and the page template fills in the specific content.
+		patterns := []string{
+			"html/base.html",
+			"html/partials/*.html",
+			page,
+		}
+
+		// ParseFS replaces ParseFiles/ParseGlob for embedded files.
+		// It's an atomic way to compile the entire template set for a page.
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
 
-		// Parse all partial templates (e.g., nav, footer) into the same template set
-		ts, err = ts.ParseGlob("./ui/html/partials/*.html")
-		if err != nil {
-			return nil, err
-		}
-
-		// Parse the current page template, so it can override blocks in base
-		ts, err = ts.ParseFiles(page)
-		if err != nil {
-			return nil, err
-		}
-
-		// Add the fully compiled template set to the cache with the page name as key
 		cache[name] = ts
 	}
 
-	// Return the cache containing all compiled templates
 	return cache, nil
 }
