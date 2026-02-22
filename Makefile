@@ -51,7 +51,7 @@ GOTEST_FLAGS    ?= -coverprofile=$(COVERAGE_OUTPUT)
 
 .PHONY: build clean deps fmt vet local \
         test test-race test-integration help \
-        start stop restart logs \
+        start stop restart prune logs \
         migration-create migration-up migration-down migration-status migration-force
 
 # --------------------------------------------------------------------
