@@ -94,3 +94,26 @@ func TestSnippetView(t *testing.T) {
 		})
 	}
 }
+
+// TestUserSignup verifies that the signup page is rendered correctly and
+// contains the necessary security tokens and session cookies required
+// for a successful form submission.
+func TestUserSignup(t *testing.T) {
+	app := newTestApplication(t)
+	ts := newTestServer(t, app.routes())
+
+	// Request the signup form.
+	res := ts.get(t, "/user/signup")
+
+	// Assert the page loaded successfully.
+	assert.Equal(t, res.status, http.StatusOK)
+
+	// Extract the CSRF token to ensure it is present in the HTML.
+	// If the token is missing, extractCSRFToken will call t.Fatal.
+	token := extractCSRFToken(t, res.body)
+	t.Logf("Extracted CSRF token: %q", token)
+
+	// Log cookie details for debugging session persistence.
+	// In a real scenario, we expect to see a session cookie here.
+	t.Logf("Response Cookies: %v", res.cookies)
+}

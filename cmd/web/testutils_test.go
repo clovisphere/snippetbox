@@ -34,7 +34,7 @@ type testResponse struct {
 // csrfTokenRX is a pre-compiled regular expression that captures the value of
 // the CSRF token from an HTML hidden input field. We compile it once at
 // package level for better performance during test execution.
-var csrfTokenRX = regexp.MustCompile(`<input type='hidden' name='csrf_token' value='(.+)'>`)
+var csrfTokenRX = regexp.MustCompile(`<input type=['"]hidden['"] name=['"]csrf_token['"] value=['"](.+)['"]\s*/?>`)
 
 // newTestApplication initializes a minimal application instance with a discarded
 // logger to keep test output clean.
