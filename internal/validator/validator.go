@@ -9,7 +9,8 @@ import (
 
 // Validator holds form validation errors.
 type Validator struct {
-	FieldErrors map[string]string
+	NonFieldErrors []string
+	FieldErrors    map[string]string
 }
 
 // EmailRx is a regular expression used for validating email addresses.
@@ -18,7 +19,13 @@ var EmailRx = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](
 
 // Valid returns true if there are no validation errors.
 func (v *Validator) Valid() bool {
-	return len(v.FieldErrors) == 0
+	return len(v.FieldErrors) == 0 && len(v.NonFieldErrors) == 0
+}
+
+// AddNonFieldError adds an error message to the NonFieldErrors slice
+// that is not related to a specific form field.
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
 }
 
 // AddFieldError adds an error message to the map if it doesn't already exist.
