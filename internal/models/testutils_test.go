@@ -8,10 +8,10 @@ import (
 	_ "github.com/go-sql-driver/mysql" // Blank import to register the MySQL driver
 )
 
-// newTestDB creates a connection to the test database, executes the setup.sql
+// NewTestDB creates a connection to the test database, executes the setup.sql
 // script to prepare the schema/data, and registers a cleanup function to
 // run teardown.sql and close the connection when the test finishes.
-func newTestDB(t *testing.T) *sql.DB {
+func NewTestDB(t *testing.T) *sql.DB {
 	// Establish a connection to the test database on port 3307.
 	// The multiStatements=true parameter is crucial here as it allows
 	// our SQL driver to execute multiple commands (CREATE, INSERT) in one go.

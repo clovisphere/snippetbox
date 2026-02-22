@@ -1,9 +1,10 @@
-package models
+package models_test
 
 import (
 	"testing"
 
 	"github.com/clovisphere/snippetbox/internal/assert"
+	"github.com/clovisphere/snippetbox/internal/models"
 )
 
 // TestUserModelExists validates the Exists method against the test database.
@@ -15,8 +16,8 @@ func TestUserModelExists(t *testing.T) {
 	}
 
 	// Initialize the test database and the UserModel.
-	db := newTestDB(t)
-	m := UserModel{DB: db}
+	db := models.NewTestDB(t)
+	m := models.UserModel{DB: db}
 
 	tests := []struct {
 		name   string
