@@ -63,3 +63,23 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// requireAuthentication is middleware that ensures a user is authenticated
+// before accessing the next handler. If the user is not authenticated, it
+// redirects them to the login page. It also sets headers to prevent caching
+// of sensitive content.
+func (app *application) requireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Redirect to login if the user is not authenticated
+		if !app.isAuthenticated(r) {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+
+		// Prevent caching of authenticated pages
+		w.Header().Add("Cache-Control", "no-store")
+
+		// Call the next handler in the chain
+		next.ServeHTTP(w, r)
+	})
+}
