@@ -77,10 +77,16 @@ func main() {
 		templateCache:  templateCache,
 	}
 
-	logger.Info("Starting server", slog.String("addr", *addr))
+	srv := &http.Server{
+		Addr:     *addr,
+		Handler:  app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+
+	logger.Info("Starting server", slog.String("addr", srv.Addr))
 
 	// Start the HTTP server and listen on the specified address
-	if err := http.ListenAndServe(*addr, app.routes()); !errors.Is(err, http.ErrServerClosed) {
+	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
