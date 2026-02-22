@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"regexp"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -10,6 +11,10 @@ import (
 type Validator struct {
 	FieldErrors map[string]string
 }
+
+// EmailRx is a regular expression used for validating email addresses.
+// It follows the pattern recommended by the W3C and HTML5 specification.
+var EmailRx = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Valid returns true if there are no validation errors.
 func (v *Validator) Valid() bool {
@@ -42,6 +47,16 @@ func NotBlank(value string) bool {
 // MaxChars returns true if a value contains no more than n characters.
 func MaxChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) <= n
+}
+
+// MinChars returns true if a value contains at least n characters.
+func MinChars(value string, n int) bool {
+	return utf8.RuneCountInString(value) >= n
+}
+
+// Matches returns true if a value matches a specific regular expression pattern.
+func Matches(value string, rx *regexp.Regexp) bool {
+	return rx.MatchString(value)
 }
 
 // PermittedValue returns true if a value is in a list of allowed options.

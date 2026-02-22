@@ -2,7 +2,12 @@ package models
 
 import (
 	"database/sql"
+	"errors"
+	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User represents the data held in the users table for an individual user.
@@ -23,9 +28,24 @@ type UserModel struct {
 // Insert adds a new record to the users table. If the email already exists,
 // it returns an ErrDuplicateEmail error.
 func (s *UserModel) Insert(name, email, password string) error {
-	// TODO: Use bcrypt to hash the password.
-	// TODO: Execute a SQL INSERT statement.
-	// TODO: Handle the MySQL 1062 error for duplicate emails.
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+
+	stmt := `INSERT INTO users (name, email, hashed_password, created_at)
+	VALUES(?, ?, ?, UTC_TIMESTAMP())`
+
+	if _, err := s.DB.Exec(stmt, name, email, string(hashedPassword)); err != nil {
+		var mySQLError *mysql.MySQLError
+		if errors.As(err, &mySQLError) {
+			if mySQLError.Number == 1062 && strings.Contains(mySQLError.Message, "users_uc_email") {
+				return ErrDuplicateEmail
+			}
+		}
+		return err
+	}
+
 	return nil
 }
 

@@ -10,6 +10,14 @@ import (
 	"github.com/clovisphere/snippetbox/internal/validator"
 )
 
+// userSignupForm holds the form data and validation errors for user registration.
+type userSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 // snippetCreateForm holds the form data and validation errors for a new snippet.
 type snippetCreateForm struct {
 	Title               string `form:"title"`
@@ -115,16 +123,55 @@ func (app *application) show(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+// userSignup handles the GET request to display the user registration form.
+// It initializes a new userSignupForm and renders the signup template.
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	// Displays the signup form
+	data := app.newTemplateData(r)
+	data.Form = userSignupForm{}
+	app.render(w, r, http.StatusOK, "signup.html", data)
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	// Processes the signup form submission
+	var form userSignupForm
+
+	if err := app.decodePostForm(r, &form); err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	// Validate the form data against specific business rules.
+	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRx), "email", "This field must be a valid email address")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field mujst be at least 8 characters long")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "signup.html", data)
+		return
+	}
+
+	if err := app.users.Insert(form.Name, form.Email, form.Password); err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			form.AddFieldError("email", "Email address already in use")
+			data := app.newTemplateData(r)
+			data.Form = form
+			app.render(w, r, http.StatusUnprocessableEntity, "signup.html", data)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Your signup was successful. Please log in.")
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	// Displays the login form
+	fmt.Fprintln(w, "Display a form for logging in a user...")
 }
 
 func (app *application) userAuthenticate(w http.ResponseWriter, r *http.Request) {
