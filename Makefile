@@ -47,7 +47,9 @@ DOCKER_COMPOSE  ?= docker compose -f $(COMPOSE_FILE)
 
 # Test config
 COVERAGE_OUTPUT ?= cover.out
-GOTEST_FLAGS    ?= -coverprofile=$(COVERAGE_OUTPUT)
+# -coverprofile generates the report file
+# -covermode=count tracks the execution frequency of each block
+GOTEST_FLAGS ?= -covermode=count -coverprofile=$(COVERAGE_OUTPUT)
 
 .PHONY: build clean deps fmt vet local \
         test test-race test-integration help \
